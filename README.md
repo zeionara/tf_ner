@@ -1,5 +1,23 @@
 # Tensorflow - Named Entity Recognition
-
+## Convert from conl2003:
+```sh
+python convert_data_from_conll2003.py --input /home/dima/tener/data/conll2003ru-bio-super-distinct --output data/conll2003ru
+```
+## Run LSTM_CRF
+### Train and get predictions on test datasets
+```sh
+cd models/lstm_crf
+python main.py --data ../../data/conll2003ru
+```
+### Compute metrics
+```sh
+../conlleval < results/score/testa.preds.txt > results/score/score.testa.metrics.txt
+```
+### Extract named entities from a raw sentence
+```sh
+python interact.py --training_data ../../data/conll2003ru --text ../../raw.txt --output ../../raw.lstm-crf.predictions.txt
+```
+## CHARS_CONV_LSTM_CRF_EMA does not work because of compatibility issues (requires tensorflow_gpu==1.8)
 Each folder contains a __standalone__, __short (~100 lines of Tensorflow)__, `main.py` that implements a neural-network based model for Named Entity Recognition (NER) using [`tf.estimator`](https://www.tensorflow.org/guide/custom_estimators) and [`tf.data`](https://www.tensorflow.org/guide/datasets).
 
 ![Named Entity Recognition](images/ner.png)
