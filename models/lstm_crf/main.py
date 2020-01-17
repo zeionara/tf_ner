@@ -2,6 +2,7 @@
 
 __author__ = "Guillaume Genthial"
 
+import argparse
 import functools
 import json
 import logging
@@ -12,11 +13,11 @@ import numpy as np
 import tensorflow as tf
 from tf_metrics import precision, recall, f1
 
-DATADIR = '../../data/example'
+#DATADIR = '../../data/example'
 
 # Logging
 Path('results').mkdir(exist_ok=True)
-tf.logging.set_verbosity(logging.INFO)
+#tf.logging.set_verbosity(logging.INFO)
 handlers = [
     logging.FileHandler('results/main.log'),
     logging.StreamHandler(sys.stdout)
@@ -137,28 +138,34 @@ def model_fn(features, labels, mode, params):
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('--data', type=str, default='../../data/conll2003ru')
+
+    args = parser.parse_args()
+
     # Params
     params = {
-        'dim': 300,
+        'dim': 100,
         'dropout': 0.5,
         'num_oov_buckets': 1,
         'epochs': 25,
         'batch_size': 20,
         'buffer': 15000,
         'lstm_size': 100,
-        'words': str(Path(DATADIR, 'vocab.words.txt')),
-        'chars': str(Path(DATADIR, 'vocab.chars.txt')),
-        'tags': str(Path(DATADIR, 'vocab.tags.txt')),
-        'glove': str(Path(DATADIR, 'glove.npz'))
+        'words': str(Path(args.data, 'vocab.words.txt')),
+        'chars': str(Path(args.data, 'vocab.chars.txt')),
+        'tags': str(Path(args.data, 'vocab.tags.txt')),
+        'glove': str(Path(args.data, 'glove.npz'))
     }
     with Path('results/params.json').open('w') as f:
         json.dump(params, f, indent=4, sort_keys=True)
 
     def fwords(name):
-        return str(Path(DATADIR, '{}.words.txt'.format(name)))
+        return str(Path(args.data, '{}.words.txt'.format(name)))
 
     def ftags(name):
-        return str(Path(DATADIR, '{}.tags.txt'.format(name)))
+        return str(Path(args.data, '{}.tags.txt'.format(name)))
 
     # Estimator, train and evaluate
     train_inpf = functools.partial(input_fn, fwords('train'), ftags('train'),
@@ -168,7 +175,7 @@ if __name__ == '__main__':
     cfg = tf.estimator.RunConfig(save_checkpoints_secs=120)
     estimator = tf.estimator.Estimator(model_fn, 'results/model', cfg, params)
     Path(estimator.eval_dir()).mkdir(parents=True, exist_ok=True)
-    hook = tf.contrib.estimator.stop_if_no_increase_hook(
+    hook = tf.estimator.experimental.stop_if_no_increase_hook(
         estimator, 'f1', 500, min_steps=8000, run_every_secs=120)
     train_spec = tf.estimator.TrainSpec(input_fn=train_inpf, hooks=[hook])
     eval_spec = tf.estimator.EvalSpec(input_fn=eval_inpf, throttle_secs=120)

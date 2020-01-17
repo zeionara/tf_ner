@@ -1,0 +1,13 @@
+{
+    "batch_size": 20,
+    "buffer": 15000,
+    "chars": "../../data/conll2003ru/vocab.chars.txt",
+    "dim": 100,
+    "dropout": 0.5,
+    "epochs": 25,
+    "glove": "../../data/conll2003ru/glove.npz",
+    "lstm_size": 100,
+    "num_oov_buckets": 1,
+    "tags": "../../data/conll2003ru/vocab.tags.txt",
+    "words": "../../data/conll2003ru/vocab.words.txt"
+}
